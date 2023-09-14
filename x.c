@@ -45,6 +45,14 @@ typedef struct {
 	signed char appcursor; /* application cursor */
 } Key;
 
+
+// #define DEBUG_MODE 1
+#ifdef DEBUG_MODE
+#define LEVELD(VAL_1, VAL_2) printf(VAL_1);printf(": ");VAL_2;printf("\n");
+#else
+#define LEVELD(VAL_1, VAL_2)
+#endif
+
 /* X modifiers */
 #define XK_ANY_MOD    UINT_MAX
 #define XK_NO_MOD     0
@@ -1798,14 +1806,20 @@ kmap(KeySym k, uint state)
 	Key *kp;
 	int i;
 
+        LEVELD("kmap", printf("state: %u", state))
+
 	/* Check for mapped keys out of X11 function keys. */
 	for (i = 0; i < LEN(mappedkeys); i++) {
 		if (mappedkeys[i] == k)
 			break;
 	}
 	if (i == LEN(mappedkeys)) {
-		if ((k & 0xFFFF) < 0xFD00)
+                // Why is the state 16 by default?
+                // state > 16 means either control or alt is pressed
+		if ((k & 0xFFFF) < 0xFD00 && state <= 16) {
+                        LEVELD("kmap", printf("((k & 0xFFFF) < 0xFD00)"))
 			return NULL;
+                }
 	}
 
 	for (kp = key; kp < key + LEN(key); kp++) {
@@ -1823,9 +1837,11 @@ kmap(KeySym k, uint state)
 		if (IS_SET(MODE_APPCURSOR) ? kp->appcursor < 0 : kp->appcursor > 0)
 			continue;
 
+                LEVELD("kmap", printf("Returning %s", kp->s))
 		return kp->s;
 	}
 
+        LEVELD("kmap", printf("Not custom key, returning NULL"))
 	return NULL;
 }
 
@@ -1850,7 +1866,7 @@ kpress(XEvent *ev)
 
         // https://www.x.org/releases/X11R7.6/doc/libX11/specs/libX11/libX11.html
         // Print debugging info about the key event
-        fprintf(stdout, "state: %u, keycode: %u, keysym: %lu\n", e->state, e->keycode, ksym);
+        LEVELD("kpress", printf("state: %u, keycode: %u, keysym: %lu\n", e->state, e->keycode, ksym))
 
 	/* 1. shortcuts */
 	for (bp = shortcuts; bp < shortcuts + LEN(shortcuts); bp++) {
@@ -1862,6 +1878,7 @@ kpress(XEvent *ev)
 
 	/* 2. custom keys from config.h */
 	if ((customkey = kmap(ksym, e->state))) {
+                LEVELD("kpress", printf("Sending custom key: %s", customkey))
 		ttywrite(customkey, strlen(customkey), 1);
 		return;
 	}
