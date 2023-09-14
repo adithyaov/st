@@ -1840,6 +1840,10 @@ kpress(XEvent *ev)
 	Status status;
 	Shortcut *bp;
 
+        // https://www.x.org/releases/X11R7.6/doc/libX11/specs/libX11/libX11.html
+        // Print debugging info about the key event
+        fprintf(stdout, "state: %u, keycode: %u\n", e->state, e->keycode);
+
 	if (IS_SET(MODE_KBDLOCK))
 		return;
 
