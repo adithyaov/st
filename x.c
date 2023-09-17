@@ -1814,9 +1814,12 @@ kmap(KeySym k, uint state)
 			break;
 	}
 	if (i == LEN(mappedkeys)) {
-                // Why is the state 16 by default?
-                // state > 16 means either control or alt is pressed
-		if ((k & 0xFFFF) < 0xFD00 && state <= 16) {
+                // https://tronche.com/gui/x/xlib/events/keyboard-pointer/keyboard-pointer.html#XKeyEvent
+                // Use xmodmap & xmodmap -pke to see what the keys are mapped to.
+                // If the default state is 16 it means the NUM_LOCK is active.
+                //
+                LEVELD("kmap", printf("k = %lX", k))
+		if ((k & 0xFFFF) < 0xFD00) {
                         LEVELD("kmap", printf("((k & 0xFFFF) < 0xFD00)"))
 			return NULL;
                 }
