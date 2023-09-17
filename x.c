@@ -1871,6 +1871,14 @@ kpress(XEvent *ev)
         // Print debugging info about the key event
         LEVELD("kpress", printf("state: %u, keycode: %u, keysym: %lu\n", e->state, e->keycode, ksym))
 
+        if (((e->state & 0x09) == 0x09) && (ksym == 79)) {
+                // Alt + Shift == state has 0x09 active
+                // 79 == O (Capital O)
+                LEVELD("kpress", printf("M-O is pressed"))
+                ttywrite("\033[23;5~", strlen("\033[23;5~"), 1);
+                return;
+        }
+
 	/* 1. shortcuts */
 	for (bp = shortcuts; bp < shortcuts + LEN(shortcuts); bp++) {
 		if (ksym == bp->keysym && match(bp->mod, e->state)) {
